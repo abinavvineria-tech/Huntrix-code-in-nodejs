@@ -1,237 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Huntrix OS ALL-IN-ONE</title>
-
-<style>
-body{
-margin:0;
-font-family:Arial;
-background:linear-gradient(135deg,#0f0f0f,#1a1a2e);
-color:white;
-}
-
-.topbar{
-background:#111;
-padding:10px;
-text-align:center;
-font-weight:bold;
-}
-
-.apps{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:15px;
-padding:20px;
-}
-
-.app{
-background:#222;
-padding:20px;
-border-radius:15px;
-text-align:center;
-cursor:pointer;
-transition:.3s;
-}
-
-.app:hover{
-transform:scale(1.1);
-background:#333;
-}
-
-.window{
-position:fixed;
-top:10%;
-left:10%;
-width:80%;
-height:70%;
-background:#111;
-border-radius:15px;
-display:none;
-flex-direction:column;
-}
-
-.header{
-background:#222;
-padding:10px;
-display:flex;
-justify-content:space-between;
-cursor:move;
-}
-
-.content{
-padding:15px;
-flex:1;
-overflow:auto;
-}
-
-button{
-padding:10px;
-margin:5px;
-background:#00ffcc;
-border:none;
-border-radius:8px;
-cursor:pointer;
-}
-</style>
+    <title>Login - Huntrix Cloud</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
+<body class="bg-black flex items-center justify-center h-screen">
 
-<div class="topbar">🔥 Huntrix OS ULTRA ALL-IN-ONE</div>
+<div class="bg-gray-900 p-6 rounded-xl w-80">
 
-<div class="apps">
-<div class="app" onclick="openApp('clicker')">🎮 Clicker</div>
-<div class="app" onclick="openApp('store')">🛒 Store</div>
-<div class="app" onclick="openApp('leaderboard')">🏆 Leaderboard</div>
-<div class="app" onclick="openApp('about')">⚙️ About</div>
-</div>
+    <h1 class="text-white text-xl text-center mb-4">
+        🔐 Huntrix Login
+    </h1>
 
-<div class="window" id="win">
-<div class="header" id="drag">
-<span id="title">App</span>
-<span onclick="closeApp()">✖</span>
-</div>
-<div class="content" id="content"></div>
+    <input id="user" placeholder="Username"
+        class="w-full p-2 mb-2 bg-gray-800 text-white rounded">
+
+    <input id="pass" type="password" placeholder="Password"
+        class="w-full p-2 mb-2 bg-gray-800 text-white rounded">
+
+    <button onclick="login()"
+        class="w-full bg-green-500 p-2 rounded text-black font-bold">
+        Login
+    </button>
+
+    <p id="msg" class="text-red-400 mt-2 text-center"></p>
+
 </div>
 
 <script>
-let points = +localStorage.getItem("p") || 0;
-let power = +localStorage.getItem("pw") || 1;
-let auto = +localStorage.getItem("a") || 0;
-let level = +localStorage.getItem("l") || 1;
+async function login() {
+    const username = document.getElementById("user").value;
+    const password = document.getElementById("pass").value;
 
-/* FAKE GLOBAL LEADERBOARD */
-let leaderboard = JSON.parse(localStorage.getItem("lb")) || [
-{name:"Alex",score:500},
-{name:"Zoe",score:300},
-{name:"You",score:points}
-];
+    const res = await fetch("/login", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ username, password })
+    });
 
-/* AUTO */
-setInterval(()=>{
-points += auto;
-save();
-},1000);
+    const data = await res.json();
 
-/* OPEN */
-function openApp(app){
-let w=document.getElementById("win");
-let t=document.getElementById("title");
-let c=document.getElementById("content");
-w.style.display="flex";
-
-if(app==="clicker"){
-t.innerHTML="Clicker";
-c.innerHTML=`
-<h2>Points: ${points}</h2>
-<h3>Level: ${level}</h3>
-<button onclick="clicker()">🔥 CLICK</button>
-<p>Power: ${power}</p>
-<p>Auto: ${auto}</p>`;
+    if (data.status === "success") {
+        localStorage.setItem("token", data.token);
+        window.location.href = "/dashboard";
+    } else {
+        document.getElementById("msg").innerText = "❌ Login failed";
+    }
 }
-
-if(app==="store"){
-t.innerHTML="Store";
-c.innerHTML=`
-<h3>Points: ${points}</h3>
-<button onclick="buy(10,'pw')">+1 Power (10)</button>
-<button onclick="buy(50,'a')">+1 Auto (50)</button>`;
-}
-
-if(app==="leaderboard"){
-t.innerHTML="Leaderboard";
-showLB();
-}
-
-if(app==="about"){
-t.innerHTML="About";
-c.innerHTML="<h2>Huntrix OS 🔥</h2><p>Single file system 😎</p>";
-}
-}
-
-/* CLICK */
-function clicker(){
-points += power;
-levelUp();
-save();
-}
-
-/* BUY */
-function buy(cost,type){
-if(points>=cost){
-points-=cost;
-if(type==="pw") power++;
-if(type==="a") auto++;
-save();
-openApp("store");
-}else alert("No money ❌");
-}
-
-/* LEVEL */
-function levelUp(){
-if(points>level*100){
-level++;
-}
-}
-
-/* LEADERBOARD */
-function showLB(){
-let c=document.getElementById("content");
-
-leaderboard[2]={name:"You",score:points};
-leaderboard.sort((a,b)=>b.score-a.score);
-
-let html="<h2>🏆 Top Players</h2>";
-
-leaderboard.forEach((p,i)=>{
-html+=`<p>${i+1}. ${p.name} - ${p.score}</p>`;
-});
-
-html+=`<button onclick="saveLB()">Save Score</button>`;
-
-c.innerHTML=html;
-}
-
-/* SAVE LB */
-function saveLB(){
-leaderboard[2]={name:"You",score:points};
-localStorage.setItem("lb",JSON.stringify(leaderboard));
-alert("Saved 🔥");
-}
-
-/* SAVE */
-function save(){
-localStorage.setItem("p",points);
-localStorage.setItem("pw",power);
-localStorage.setItem("a",auto);
-localStorage.setItem("l",level);
-}
-
-/* CLOSE */
-function closeApp(){
-document.getElementById("win").style.display="none";
-}
-
-/* DRAG */
-let drag=document.getElementById("win");
-let header=document.getElementById("drag");
-let x=0,y=0,down=false;
-
-header.onmousedown=e=>{
-down=true;
-x=e.clientX-drag.offsetLeft;
-y=e.clientY-drag.offsetTop;
-};
-
-document.onmouseup=()=>down=false;
-
-document.onmousemove=e=>{
-if(!down) return;
-drag.style.left=(e.clientX-x)+"px";
-drag.style.top=(e.clientY-y)+"px";
-};
 </script>
 
 </body>

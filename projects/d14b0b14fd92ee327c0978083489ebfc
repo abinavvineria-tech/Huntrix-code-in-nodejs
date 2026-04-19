@@ -1,0 +1,54 @@
+const express = require("express");
+const multer = require("multer");
+const { exec } = require("child_process");
+const path = require("path");
+const fs = require("fs");
+
+const app = express();
+const PORT = 3000;
+
+const upload = multer({ dest: "projects/" });
+
+app.use(express.json());
+
+// 🟢 Home UI
+app.get("/", (req, res) => {
+    res.send(`
+        <h1>🔥 HUNTRIX APK BUILDER PRO</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="app" />
+            <button type="submit">Upload Project</button>
+        </form>
+        <br>
+        <a href="/build"><button>Build APK</button></a>
+    `);
+});
+
+// 📦 Upload project
+app.post("/upload", upload.single("app"), (req, res) => {
+    res.send("✅ Project uploaded!");
+});
+
+// ⚙️ Build APK
+app.get("/build", (req, res) => {
+    console.log("🚀 Building APK...");
+
+    exec("cd projects/myapp && ./gradlew assembleDebug", (err, stdout, stderr) => {
+        if (err) {
+            console.log(stderr);
+            return res.send("❌ Build failed");
+        }
+
+        const apkPath = path.join(__dirname, "projects/myapp/app/build/outputs/apk/debug/app-debug.apk");
+        const outputPath = path.join(__dirname, "output/app-debug.apk");
+
+        fs.mkdirSync("output", { recursive: true });
+        fs.copyFileSync(apkPath, outputPath);
+
+        res.send("✅ APK Built Successfully! Check /output folder");
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`🔥 APK Builder running on http://localhost:${PORT}`);
+});

@@ -1,198 +1,237 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Huntrix OS Ultra</title>
+<title>Huntrix OS ALL-IN-ONE</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: linear-gradient(135deg,#0f0f0f,#1a1a2e);
-    color: white;
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#0f0f0f,#1a1a2e);
+color:white;
 }
 
-/* Top bar */
-.topbar {
-    background: #111;
-    padding: 10px;
-    text-align: center;
+.topbar{
+background:#111;
+padding:10px;
+text-align:center;
+font-weight:bold;
 }
 
-/* Apps */
-.apps {
-    display: grid;
-    grid-template-columns: repeat(4,1fr);
-    gap: 15px;
-    padding: 20px;
+.apps{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:15px;
+padding:20px;
 }
 
-.app {
-    background: #222;
-    padding: 20px;
-    border-radius: 15px;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.3s;
+.app{
+background:#222;
+padding:20px;
+border-radius:15px;
+text-align:center;
+cursor:pointer;
+transition:.3s;
 }
 
-.app:hover {
-    transform: scale(1.1);
-    background: #333;
+.app:hover{
+transform:scale(1.1);
+background:#333;
 }
 
-/* Window */
-.window {
-    position: fixed;
-    top: 10%;
-    left: 10%;
-    width: 80%;
-    height: 70%;
-    background: #111;
-    border-radius: 15px;
-    display: none;
-    flex-direction: column;
+.window{
+position:fixed;
+top:10%;
+left:10%;
+width:80%;
+height:70%;
+background:#111;
+border-radius:15px;
+display:none;
+flex-direction:column;
 }
 
-.window-header {
-    background: #222;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
+.header{
+background:#222;
+padding:10px;
+display:flex;
+justify-content:space-between;
+cursor:move;
 }
 
-.close {
-    cursor: pointer;
-    color: red;
+.content{
+padding:15px;
+flex:1;
+overflow:auto;
 }
 
-.content {
-    padding: 15px;
-    flex: 1;
-}
-
-button {
-    padding: 10px;
-    margin: 5px;
-    background: #00ffcc;
-    border: none;
-    cursor: pointer;
-    border-radius: 8px;
-}
-
-h2,h3 {
-    margin: 5px 0;
+button{
+padding:10px;
+margin:5px;
+background:#00ffcc;
+border:none;
+border-radius:8px;
+cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<div class="topbar">🔥 Huntrix OS Ultra Pro Max</div>
+<div class="topbar">🔥 Huntrix OS ULTRA ALL-IN-ONE</div>
 
 <div class="apps">
-    <div class="app" onclick="openApp('clicker')">🎮 Clicker</div>
-    <div class="app" onclick="openApp('store')">🛒 Store</div>
-    <div class="app" onclick="openApp('notes')">📝 Notes</div>
-    <div class="app" onclick="openApp('about')">⚙️ About</div>
+<div class="app" onclick="openApp('clicker')">🎮 Clicker</div>
+<div class="app" onclick="openApp('store')">🛒 Store</div>
+<div class="app" onclick="openApp('leaderboard')">🏆 Leaderboard</div>
+<div class="app" onclick="openApp('about')">⚙️ About</div>
 </div>
 
-<div class="window" id="window">
-    <div class="window-header">
-        <span id="title">App</span>
-        <span class="close" onclick="closeApp()">✖</span>
-    </div>
-    <div class="content" id="content"></div>
+<div class="window" id="win">
+<div class="header" id="drag">
+<span id="title">App</span>
+<span onclick="closeApp()">✖</span>
+</div>
+<div class="content" id="content"></div>
 </div>
 
 <script>
-let points = parseInt(localStorage.getItem("points")) || 0;
-let power = parseInt(localStorage.getItem("power")) || 1;
-let auto = parseInt(localStorage.getItem("auto")) || 0;
+let points = +localStorage.getItem("p") || 0;
+let power = +localStorage.getItem("pw") || 1;
+let auto = +localStorage.getItem("a") || 0;
+let level = +localStorage.getItem("l") || 1;
 
-/* AUTO INCOME */
-setInterval(() => {
-    points += auto;
-    saveGame();
-}, 1000);
+/* FAKE GLOBAL LEADERBOARD */
+let leaderboard = JSON.parse(localStorage.getItem("lb")) || [
+{name:"Alex",score:500},
+{name:"Zoe",score:300},
+{name:"You",score:points}
+];
 
-/* OPEN APPS */
-function openApp(app) {
-    let w = document.getElementById("window");
-    let t = document.getElementById("title");
-    let c = document.getElementById("content");
+/* AUTO */
+setInterval(()=>{
+points += auto;
+save();
+},1000);
 
-    w.style.display = "flex";
+/* OPEN */
+function openApp(app){
+let w=document.getElementById("win");
+let t=document.getElementById("title");
+let c=document.getElementById("content");
+w.style.display="flex";
 
-    if(app==="clicker"){
-        t.innerText="Huntrix Clicker 🎮";
-        c.innerHTML=`
-        <h2>Points: <span id="points">${points}</span></h2>
-        <button onclick="clickPoints()">🔥 CLICK 🔥</button>
-        <p>Power: ${power}</p>
-        <p>Auto/sec: ${auto}</p>
-        `;
-    }
+if(app==="clicker"){
+t.innerHTML="Clicker";
+c.innerHTML=`
+<h2>Points: ${points}</h2>
+<h3>Level: ${level}</h3>
+<button onclick="clicker()">🔥 CLICK</button>
+<p>Power: ${power}</p>
+<p>Auto: ${auto}</p>`;
+}
 
-    if(app==="store"){
-        t.innerText="Huntrix Store 🛒";
-        c.innerHTML=`
-        <h3>Points: ${points}</h3>
-        <button onclick="buy(10,1,'power')">+1 Power (10)</button>
-        <button onclick="buy(50,5,'power')">+5 Power (50)</button>
-        <button onclick="buy(100,1,'auto')">+1 Auto/sec (100)</button>
-        `;
-    }
+if(app==="store"){
+t.innerHTML="Store";
+c.innerHTML=`
+<h3>Points: ${points}</h3>
+<button onclick="buy(10,'pw')">+1 Power (10)</button>
+<button onclick="buy(50,'a')">+1 Auto (50)</button>`;
+}
 
-    if(app==="notes"){
-        t.innerText="Notes";
-        c.innerHTML=`
-        <textarea id="noteArea"></textarea>
-        <button onclick="saveNote()">Save</button>
-        `;
-    }
+if(app==="leaderboard"){
+t.innerHTML="Leaderboard";
+showLB();
+}
 
-    if(app==="about"){
-        t.innerText="About";
-        c.innerHTML=`<h2>Huntrix OS 🔥</h2><p>Ultra Version 😎</p>`;
-    }
+if(app==="about"){
+t.innerHTML="About";
+c.innerHTML="<h2>Huntrix OS 🔥</h2><p>Single file system 😎</p>";
+}
 }
 
 /* CLICK */
-function clickPoints(){
-    points += power;
-    document.getElementById("points").innerText = points;
-    saveGame();
+function clicker(){
+points += power;
+levelUp();
+save();
 }
 
-/* STORE */
-function buy(cost,val,type){
-    if(points>=cost){
-        points-=cost;
-        if(type==="power") power+=val;
-        if(type==="auto") auto+=val;
-        saveGame();
-        openApp("store");
-    } else alert("Not enough ❌");
+/* BUY */
+function buy(cost,type){
+if(points>=cost){
+points-=cost;
+if(type==="pw") power++;
+if(type==="a") auto++;
+save();
+openApp("store");
+}else alert("No money ❌");
+}
+
+/* LEVEL */
+function levelUp(){
+if(points>level*100){
+level++;
+}
+}
+
+/* LEADERBOARD */
+function showLB(){
+let c=document.getElementById("content");
+
+leaderboard[2]={name:"You",score:points};
+leaderboard.sort((a,b)=>b.score-a.score);
+
+let html="<h2>🏆 Top Players</h2>";
+
+leaderboard.forEach((p,i)=>{
+html+=`<p>${i+1}. ${p.name} - ${p.score}</p>`;
+});
+
+html+=`<button onclick="saveLB()">Save Score</button>`;
+
+c.innerHTML=html;
+}
+
+/* SAVE LB */
+function saveLB(){
+leaderboard[2]={name:"You",score:points};
+localStorage.setItem("lb",JSON.stringify(leaderboard));
+alert("Saved 🔥");
 }
 
 /* SAVE */
-function saveGame(){
-    localStorage.setItem("points",points);
-    localStorage.setItem("power",power);
-    localStorage.setItem("auto",auto);
+function save(){
+localStorage.setItem("p",points);
+localStorage.setItem("pw",power);
+localStorage.setItem("a",auto);
+localStorage.setItem("l",level);
 }
 
-/* NOTES */
-function saveNote(){
-    let text=document.getElementById("noteArea").value;
-    localStorage.setItem("note",text);
-    alert("Saved!");
-}
-
+/* CLOSE */
 function closeApp(){
-    document.getElementById("window").style.display="none";
+document.getElementById("win").style.display="none";
 }
+
+/* DRAG */
+let drag=document.getElementById("win");
+let header=document.getElementById("drag");
+let x=0,y=0,down=false;
+
+header.onmousedown=e=>{
+down=true;
+x=e.clientX-drag.offsetLeft;
+y=e.clientY-drag.offsetTop;
+};
+
+document.onmouseup=()=>down=false;
+
+document.onmousemove=e=>{
+if(!down) return;
+drag.style.left=(e.clientX-x)+"px";
+drag.style.top=(e.clientY-y)+"px";
+};
 </script>
 
 </body>

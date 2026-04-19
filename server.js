@@ -9,11 +9,24 @@ const PORT = 5000;
 app.use(express.json());
 app.use(express.static("public"));
 
-const users = require("./db/users.json");
+const usersPath = "./db/users.json";
 
-// 🔐 LOGIN SYSTEM
+// 🔧 helpers
+function loadUsers() {
+    return JSON.parse(fs.readFileSync(usersPath));
+}
+
+function saveUsers(data) {
+    fs.writeFileSync(usersPath, JSON.stringify(data, null, 2));
+}
+
+// =====================
+// 🔐 LOGIN
+// =====================
 app.post("/login", (req, res) => {
     const { username, password } = req.body;
+
+    const users = loadUsers();
 
     const user = users.find(
         u => u.username === username && u.password === password
@@ -30,10 +43,68 @@ app.post("/login", (req, res) => {
     });
 });
 
-// 📦 BUILD APK
+// =====================
+// 🆕 SIGNUP
+// =====================
+app.post("/signup", (req, res) => {
+    const { username, password } = req.body;
+
+    let users = loadUsers();
+
+    const exists = users.find(u => u.username === username);
+    if (exists) {
+        return res.json({ status: "exists" });
+    }
+
+    const newUser = {
+        id: users.length + 1,
+        username,
+        password,
+        token: Math.random().toString(36).substring(2),
+        role: "user"
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+
+    res.json({
+        status: "created",
+        token: newUser.token
+    });
+});
+
+// =====================
+// 🔐 CHANGE PASSWORD
+// =====================
+app.post("/change-password", (req, res) => {
+    const { token, oldPassword, newPassword } = req.body;
+
+    let users = loadUsers();
+
+    const user = users.find(u => u.token === token);
+
+    if (!user) {
+        return res.json({ status: "invalid token" });
+    }
+
+    if (user.password !== oldPassword) {
+        return res.json({ status: "wrong password" });
+    }
+
+    user.password = newPassword;
+
+    saveUsers(users);
+
+    res.json({ status: "password updated" });
+});
+
+// =====================
+// 🚀 BUILD APK
+// =====================
 app.post("/build", (req, res) => {
     const { token, project } = req.body;
 
+    const users = loadUsers();
     const user = users.find(u => u.token === token);
 
     if (!user) {
@@ -48,11 +119,9 @@ app.post("/build", (req, res) => {
     });
 });
 
-// 🌐 DASHBOARD PAGE
-app.get("/dashboard", (req, res) => {
-    res.sendFile(path.join(__dirname, "public/dashboard.html"));
-});
-
+// =====================
+// 🌐 START SERVER
+// =====================
 app.listen(PORT, () => {
-    console.log("🌐 Huntrix Web Cloud running on http://localhost:" + PORT);
+    console.log("☁️ Huntrix Cloud running on http://localhost:" + PORT);
 });

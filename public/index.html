@@ -13,29 +13,46 @@
         🔐 Huntrix Login
     </h1>
 
-    <input id="user" placeholder="Username"
+    <input id="username" placeholder="Username"
         class="w-full p-2 mb-2 bg-gray-800 text-white rounded">
 
-    <input id="pass" type="password" placeholder="Password"
+    <input id="password" type="password" placeholder="Password"
         class="w-full p-2 mb-2 bg-gray-800 text-white rounded">
 
     <button onclick="login()"
-        class="w-full bg-green-500 p-2 rounded text-black font-bold">
+        class="w-full bg-green-500 hover:bg-green-600 p-2 rounded font-bold text-black">
         Login
     </button>
 
     <p id="msg" class="text-red-400 mt-2 text-center"></p>
 
+    <!-- 🔽 BOTTOM BUTTONS -->
+    <div class="mt-4 space-y-2">
+
+        <a href="/signup.html">
+            <button class="w-full bg-blue-500 hover:bg-blue-600 p-2 rounded text-white">
+                🆕 Create New Account
+            </button>
+        </a>
+
+        <a href="/password.html">
+            <button class="w-full bg-purple-500 hover:bg-purple-600 p-2 rounded text-white">
+                🔐 Change Password
+            </button>
+        </a>
+
+    </div>
+
 </div>
 
 <script>
 async function login() {
-    const username = document.getElementById("user").value;
-    const password = document.getElementById("pass").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
 
     const res = await fetch("/login", {
         method: "POST",
-        headers: {"Content-Type":"application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
     });
 
@@ -43,7 +60,7 @@ async function login() {
 
     if (data.status === "success") {
         localStorage.setItem("token", data.token);
-        window.location.href = "/dashboard";
+        window.location.href = "/dashboard.html";
     } else {
         document.getElementById("msg").innerText = "❌ Login failed";
     }
